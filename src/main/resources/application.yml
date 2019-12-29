@@ -1,0 +1,16 @@
+server:
+  #配置端口号
+  port: 8080
+
+spring:
+  application:
+    #配置服务名称
+    name: MedicalPlatform
+  #数据源和jpa配置
+  datasource:
+    #数据库相关的配置url  -SSL连接设置为false
+    url: jdbc:mysql://localhost:3306/test?characterEncoding=utf8
+    #配置用户名
+    username: test
+    #配置密码
+    password: test123
