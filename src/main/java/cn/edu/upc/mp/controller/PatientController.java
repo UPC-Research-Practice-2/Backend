@@ -1,8 +1,10 @@
 package cn.edu.upc.mp.controller;
 
+import cn.edu.upc.mp.dao.PFRRepository;
 import cn.edu.upc.mp.dao.PatientRepository;
 import cn.edu.upc.mp.dao.RecordRepository;
 import cn.edu.upc.mp.entity.Patient;
+import cn.edu.upc.mp.entity.PatientFirstRecord;
 import cn.edu.upc.mp.entity.PatientSHOW;
 import cn.edu.upc.mp.entity.Record;
 import cn.edu.upc.mp.entity.info.Failure;
@@ -26,6 +28,8 @@ import java.util.List;
 public class PatientController {
     @Autowired
     PatientRepository patientRepository;
+    @Autowired
+    PFRRepository pfrRepository;
 
     @RequestMapping(value = "/list.do", method = RequestMethod.GET)
     @ResponseBody
@@ -62,7 +66,9 @@ public class PatientController {
     public Object initialize(String name, String birthPlace, String gender, Integer age, String nation, Boolean isMarried, @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date inPatientDate, @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date recordDate) {
         try {
             Patient inPatient = new Patient(name, birthPlace, gender, age, nation, isMarried, inPatientDate, recordDate);
-            patientRepository.save(inPatient);
+            Patient actual = patientRepository.save(inPatient);
+            PatientFirstRecord patientFirstRecord = new PatientFirstRecord(actual.getNumber());
+            pfrRepository.save(patientFirstRecord);
             Success success = new Success("病人信息录入成功。");
             return success;
         } catch (Exception e) {
@@ -71,18 +77,57 @@ public class PatientController {
         }
     }
 
-    @RequestMapping(value = "/del.do", method = RequestMethod.POST)
+
+    @RequestMapping(value = "/modify.do", method = RequestMethod.POST)
     @ResponseBody
-    public Object deletePatient(Integer patientNumber) {
-        try{
-            Patient patient = patientRepository.getPatientByNumber(patientNumber);
-            patientRepository.delete(patient);
-            return new Success("删除成功！");
-        } catch (Exception e){
-            return new Failure(7,"删除失败，请重试！");
+    public Object modify(Integer patientNumber, String name, String birthPlace, String gender, Integer age, String nation, Boolean isMarried, @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date inPatientDate, @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm") Date recordDate) {
+        try {
+            Patient inPatient = patientRepository.getPatientByNumber(patientNumber);
+            // 不为null则修改对应属性
+            if (name != null) {
+                inPatient.setName(name);
+            }
+            if (birthPlace != null) {
+                inPatient.setBirthPlace(birthPlace);
+            }
+            if (gender != null) {
+                inPatient.setGender(gender);
+            }
+            if (age != null) {
+                inPatient.setAge(age);
+            }
+            if (nation != null) {
+                inPatient.setNation(nation);
+            }
+            if (isMarried != null) {
+                inPatient.setIsMarried(isMarried);
+            }
+            if (inPatientDate != null) {
+                inPatient.setInPatientDate(inPatientDate);
+            }
+            if (recordDate != null) {
+                inPatient.setRecordDate(recordDate);
+            }
+            patientRepository.save(inPatient);
+            Success success = new Success("病人信息修改成功。");
+            return success;
+        } catch (Exception e) {
+            Failure failure = new Failure("病人信息修改过程出错，请检查内容是否有效！");
+            return failure;
         }
     }
 
+    @RequestMapping(value = "/del.do", method = RequestMethod.POST)
+    @ResponseBody
+    public Object deletePatient(Integer patientNumber) {
+        try {
+            Patient patient = patientRepository.getPatientByNumber(patientNumber);
+            patientRepository.delete(patient);
+            return new Success("删除成功！");
+        } catch (Exception e) {
+            return new Failure(7, "删除失败，请重试！");
+        }
+    }
 
 
 }
